@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta property="og:type" content="website">
+<meta property="og:title" content="Hexo">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:locale" content="en">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main">
+  
+    <article id="post-DEBUG之抓取蓝牙分析log" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/11/21/DEBUG%E4%B9%8B%E6%8A%93%E5%8F%96%E8%93%9D%E7%89%99%E5%88%86%E6%9E%90log/" class="article-date">
+  <time datetime="2019-11-21T11:18:52.338Z" itemprop="datePublished">2019-11-21</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/11/21/DEBUG%E4%B9%8B%E6%8A%93%E5%8F%96%E8%93%9D%E7%89%99%E5%88%86%E6%9E%90log/">DEBUG之抓取蓝牙分析log</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="DEBUG之抓取蓝牙分析log"><a href="#DEBUG之抓取蓝牙分析log" class="headerlink" title="DEBUG之抓取蓝牙分析log"></a>DEBUG之抓取蓝牙分析log</h1><h2 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h2><p>&emsp;&emsp;DEBUG的故事相信大家都不陌生，简单来说就是在早期计算机体积比较庞大的时期，一只虫子飞到计算机的线路里，造成了计算机短路，然后工作人员排查原因时，发现原来是这只虫子造成的。后来，就把解决计算机系统缺陷、漏洞叫做DEBUG.</p>
+<p>&emsp;&emsp;当前，DEBUG和BUG这两个词经常被用在计算机软件行业。</p>
+<p>&emsp;&emsp;我想，做过DEBUG的都知道，log是在DEBUG过程中被提及最多的一个东西。那什么是log呢？log中文名叫日志，它能反应出程序在计算机或其他系统中当前的状态、位置、时间等参数。通俗来说就是log是报告当前程序运行到哪了，它是什么状态的输出语句，它可以告诉程序员当前程序是正常运行还是出错了，在什么地方出错的，通过log文件来检查程序运行情况以及快速排查错误。其实，log也是程序的一部分，它是需要程序员在程序中的一些位置加入输出语句，才能形成详细的log文件。</p>
+<p>&emsp;&emsp;这篇文章主要讲一下android系统下的log获取。</p>
+<h2 id="log的分类："><a href="#log的分类：" class="headerlink" title="log的分类："></a>log的分类：</h2><p>Android系统中不同模块log类型如下图所示：<br><img src="https://i.imgur.com/Y3b7RX6.png" alt=""></p>
+<h2 id="内核空间log抓取方法："><a href="#内核空间log抓取方法：" class="headerlink" title="内核空间log抓取方法："></a>内核空间log抓取方法：</h2><p>&emsp;&emsp;Android系统有用户空间和内核空间，获取不同空间下log的方法也是不一样的。内核空间是系统的底层，占用系统的内存相较于用户空间要少，代码量也少，它的log输出内容有电池、内存等系统物理资源状态以及驱动的运行情况。获取内核log方法如下：</p>
+<p>方法一：</p>
+<p>1.adb shell；</p>
+<p>2.cd mnt/sdcard；</p>
+<p>3.dmesg &gt; kernellog.txt   &lt;文件存放路径&gt;<br>；注意：此方式不要在安卓的根目录下执行</p>
+<p>方法二：</p>
+<p>1.adb shell dmesg &gt; kernellog.txt  &lt;文件存放路径&gt;；</p>
+<p>&emsp;&emsp;若有：…:Read-only file system的错误，只是因为你所在的system文件夹是只读文件夹，需要改变文件夹的属性，有两种方式：一、mount -o remount -o rw /system；二、root,disable-verity,reboot,root,remount.注意这两种方式都要是userdebug版本的安卓。</p>
+<p>&emsp;&emsp;以上是常用的方法。内核空间还有一种动态log调试的方法，这个就下次再讲了，本文主要讲解log的概述。</p>
+<h2 id="用户空间log抓取方法："><a href="#用户空间log抓取方法：" class="headerlink" title="用户空间log抓取方法："></a>用户空间log抓取方法：</h2><p>&emsp;&emsp;在内核空间以上，也就是hal层、framework层、应用层都可以用logcat来抓取log。抓取方法如下：</p>
+<p>方法一：进程阻塞终端一直抓</p>
+<p>adb shell logcat &gt; Logcat.txt </p>
+<p>方法二：在android内开后台进程抓</p>
+<p>1.logcat -v threadtime &gt; Logcat.txt  &amp;；</p>
+<p>-v是控制log的输出格式，threadtime是日志输出时间和线程信息。更多logcat 参数用法用：logcat –hlep查看。</p>
+<p>2.Kill 进程号</p>
+<p>这里的进程号是在执行第一步之后，系统给出的，这步的作用就是结束后台抓log的进程。</p>
+<h2 id="蓝牙snoop-log抓取方法："><a href="#蓝牙snoop-log抓取方法：" class="headerlink" title="蓝牙snoop log抓取方法："></a>蓝牙snoop log抓取方法：</h2><p>&emsp;&emsp;Android中做蓝牙BUG分析抓取log的方法为：</p>
+<p>step 0：adb pull system/etc/bluetooth/bt_stack.conf，把bt_stack.conf文件pull出来，用编辑器将文件中的log等级都改成6。然后再adb push system/etc/bluetooth/bt_stack.conf</p>
+<p>step 1: adb shell setprop persist.bluetooth.btsnoopenable true 或者手机进入开发者模式，打开开发者选项中Enable Bluetooth HCI snoop log，这两者的作用是相同的，就是抓取snoop log。</p>
+<p>step 2:重启蓝牙一次。</p>
+<p>step 3:adb shell;cd mnt/sdcard; logcat -v threadtime &gt; Logcat.txt  &amp;</p>
+<p>Step4：androi O 及以上版本btsnoop log 将保存在 /data/misc/bluetooth/logs/<br>将logcat、snooplog、.cfa log都拉出来进行分析，.cfa文件用蓝牙协议工具(comproble protocol analysis system)打开。</p>
+<p>这里一共抓取了两种log：logcat log 和btsnoop log。蓝牙的大部分问题都能用这两种log结合代码分析出来。其实蓝牙还有一种log叫OTA log，这种log要专业的设备才能抓取，它显示的是蓝牙从baseband到最上层的profile整个协议栈两个蓝牙设备之间的交互命令和数据。</p>
+<h2 id="结语："><a href="#结语：" class="headerlink" title="结语："></a>结语：</h2><p>&emsp;&emsp;以上讲的都是DEBUG的第一步，获取log原材料，接着就是分析log，在这一步中你就需要些经验了，这一步别人很难帮到你。搜索log中的关键字，找你怀疑的地方，继续在代码中添加你自己的log，再抓取一遍log，不断排查原因，找到解决方案，DEBUG就算完成了。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2019/11/21/DEBUG%E4%B9%8B%E6%8A%93%E5%8F%96%E8%93%9D%E7%89%99%E5%88%86%E6%9E%90log/" data-id="ck38noqie00004so0ezqr8pi3" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-hello-world" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/11/17/hello-world/" class="article-date">
+  <time datetime="2019-11-17T09:23:21.603Z" itemprop="datePublished">2019-11-17</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/11/17/hello-world/">Hello World</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>Welcome to <a href="https://hexo.io/" target="_blank" rel="noopener">Hexo</a>! This is your very first post. Check <a href="https://hexo.io/docs/" target="_blank" rel="noopener">documentation</a> for more info. If you get any problems when using Hexo, you can find the answer in <a href="https://hexo.io/docs/troubleshooting.html" target="_blank" rel="noopener">troubleshooting</a> or you can ask me on <a href="https://github.com/hexojs/hexo/issues" target="_blank" rel="noopener">GitHub</a>.</p>
+<h2 id="Quick-Start"><a href="#Quick-Start" class="headerlink" title="Quick Start"></a>Quick Start</h2><h3 id="Create-a-new-post"><a href="#Create-a-new-post" class="headerlink" title="Create a new post"></a>Create a new post</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo new <span class="string">"My New Post"</span></span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/writing.html" target="_blank" rel="noopener">Writing</a></p>
+<h3 id="Run-server"><a href="#Run-server" class="headerlink" title="Run server"></a>Run server</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo server</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/server.html" target="_blank" rel="noopener">Server</a></p>
+<h3 id="Generate-static-files"><a href="#Generate-static-files" class="headerlink" title="Generate static files"></a>Generate static files</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo generate</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/generating.html" target="_blank" rel="noopener">Generating</a></p>
+<h3 id="Deploy-to-remote-sites"><a href="#Deploy-to-remote-sites" class="headerlink" title="Deploy to remote sites"></a>Deploy to remote sites</h3><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo deploy</span><br></pre></td></tr></table></figure>
+
+<p>More info: <a href="https://hexo.io/docs/deployment.html" target="_blank" rel="noopener">Deployment</a></p>
+<h3 id="发表新文章"><a href="#发表新文章" class="headerlink" title="发表新文章"></a>发表新文章</h3><p>在文件夹Hexo/source/_posts中，点击鼠标右键选择Git Bash Here。在命令行中输入：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ hexo g <span class="comment">#生成</span></span><br><span class="line">$ hexo d <span class="comment">#部署</span></span><br></pre></td></tr></table></figure>
+
+<p>上述命令也可合并成：</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ hexo d -g <span class="comment">#生成并部署</span></span><br></pre></td></tr></table></figure>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2019/11/17/hello-world/" data-id="ck38noqis00014so0exzx5028" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-结束的学生时代" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/07/07/%E7%BB%93%E6%9D%9F%E7%9A%84%E5%AD%A6%E7%94%9F%E6%97%B6%E4%BB%A3/" class="article-date">
+  <time datetime="2019-07-07T09:57:35.000Z" itemprop="datePublished">2019-07-07</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/07/07/%E7%BB%93%E6%9D%9F%E7%9A%84%E5%AD%A6%E7%94%9F%E6%97%B6%E4%BB%A3/">结束的学生时代</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>&emsp;&emsp;时光荏苒，一晃而过。转眼间就大四毕业了，回首望去，只留下遗憾与不舍。这次毕业也意味着我学生时代的结束，有些猝不及防的感觉，虽然我一直有意识的提醒自己快结束了，但越是接近离开，心里越是五味杂陈。<br>&emsp;&emsp;我强迫自己不去思考过去，而是直面未来。在自己的想象中社会是残酷的，我对踏入社会是有些恐惧，同时在此时对学校有着很强的留恋。对未来的迷茫、恐惧和对过去的留恋一直缠绕了我好几天，我知道我必须摆脱这种感觉，勇敢地走下去。所以，我在昨天写了一篇日记，把自己的恐惧、迷茫、不舍以及对未来的思考都写在了纸上。把情绪都书面化，就像是把情绪都发泄出来似的，心情好多了，理智慢慢地回归，我终于可以冷静地思考自己的未来。有时候，当你感觉难受的时候，把它通过日记的形式写出来，似乎是个不错的发泄方法，我似乎又找到的一个不错的方法。<br>&emsp;&emsp;今天是毕业的第二天，离别的难受正在慢慢淡去。因为一些事情，我也还没去上班，这是一个难得缓冲期。不管如何，直面将来的一切，不要再伤春悲秋了。我现在还是会恐惧，恐惧面对社会残酷的一面。但生活会使我坚强，生活会使我前进，我会接收生活给我的一切。时间是个伟大的作者，它会给所有人一个完美的结局，但过程的辛酸苦辣也是你必须品尝的。<br>&emsp;&emsp;以此篇纪念我结束的学生时代吧！</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2019/07/07/%E7%BB%93%E6%9D%9F%E7%9A%84%E5%AD%A6%E7%94%9F%E6%97%B6%E4%BB%A3/" data-id="ck38noqix00034so0ft9c7as3" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+    <article id="post-使用Shadowsocks搭建梯子的教程" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/07/07/%E4%BD%BF%E7%94%A8Shadowsocks%E6%90%AD%E5%BB%BA%E6%A2%AF%E5%AD%90%E7%9A%84%E6%95%99%E7%A8%8B/" class="article-date">
+  <time datetime="2019-07-07T09:56:50.000Z" itemprop="datePublished">2019-07-07</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/07/07/%E4%BD%BF%E7%94%A8Shadowsocks%E6%90%AD%E5%BB%BA%E6%A2%AF%E5%AD%90%E7%9A%84%E6%95%99%E7%A8%8B/">使用Shadowsocks搭建梯子的教程</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <p>想写博客很久了，但又不知道写些什么，就用我已经实现的这种翻墙方法来作为我的第一篇博客吧！第一次写，如果有什么不好的地方敬请见谅！</p>
+<p>###这是一个教程博客，博客没有说明搭梯子过程中涉及到的原理。<br>  首先是准备好必要的软件工具：Xshell、Shadowsocks。<br>将上述两个软件下载并安装在电脑上。</p>
+<p>###第一步：<br>注册并登录Vultr网站，这是一个卖服务器的公司，你可以在这个网站买到位于海外的服务器，当然它们公司还提供其他服务，这里就不介绍了。它的网址是<a href="https://my.vultr.com" target="_blank" rel="noopener">https://my.vultr.com</a>。在这个网站买服务器支持支付宝和微信支付，但它首先要让你在账号里预冲10美元，60多块钱，同时它服务器现在最便宜是5美元一个月。我现在一般不用这个网站买服务器了。因为，我在一开始冲了10美元后，它又往我的账号里赠送了50美元，我还高兴了一阵，但后来应该是到期了，网站又给我扣回去了，10美元我差不多用了2个月，我账户就欠费了。而在这两个月中，我没太多时候用到外网，我觉得有点不划算。所以，不经常上外网，不推荐用这个网站。<br>在账户中有了钱之后就可以买服务器了。如图，首先点击图中右侧的加号<img src="https://i.imgur.com/24ydIlg.png" alt="">)，进行服务器部署。如下图先选服务器的地址，我一般选新加坡、加拿大或者美国的服务器，因为这几个国家的服务器能连接的概率较高，<img src="https://i.imgur.com/xYMdxfT.png" alt="">)。然后选服务器系统类型，选择CentOS6*64的系统，如下图所示。<img src="https://i.imgur.com/Gd0TLAL.png" alt="">)。然后选择服务器的价格，其他的选择默认，就可以安装服务器了。在服务器安装完成后，你就可以得到服务器的IP和密码，如下图所示。<img src="https://i.imgur.com/yAidSFg.png" alt="">。</p>
+<p>###第二步：<br>打开安装的XShell软件，新建一个会话。在主机栏填入你在上一步中获取的服务器IP，其它默认，如下图所示。<img src="https://i.imgur.com/u4lbfq0.png" alt="">。接着点击用户身份验证，在用户名栏填入root,密码栏填入你的服务器密码，其它默认。点击确定，等待电脑与服务器连接，如果连接失败，说明你买的服务器被墙了，你就得回到第一步重新买另一个地址的服务器了，再部署安装。之后，再试着用XShell与它连接，直到连接成功。</p>
+<p>###第三步：<br>连接服务器后，开始在 服务器端安装Shadowsocks。按以下顺序操作：<br>一、在XShell中分步输入 1、yum -y install wget 2、wget -N –no-check-certificate <a href="https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/ssr.sh" target="_blank" rel="noopener">https://raw.githubusercontent.com/ToyoDAdoubi/doubi/master/ssr.sh</a> 3、bash ssr.sh<br>二、然后按XShell中给的提示操作，各步操作输入如下：1；8080；密码，自己设也可默认；10；1；1；设备数，默认；限速上限，默认；默认；y。<br>以上这两步操作完成后，服务器端的Shadowsocks就安装好了。</p>
+<p>###第四步：<br>给服务器安装加速器，让网速更快，此步是可选项，也就是说，你可以不做这步。CentOS6<em>64安装锐速加速，CentOS7</em>64安装bbr加速，这里只介绍安装锐速加速。<br>一、更换服务器端内核，要输入的命令如下 1、wget –no-check-certificate <a href="https://blog.asuhu.com/sh/ruisu.sh" target="_blank" rel="noopener">https://blog.asuhu.com/sh/ruisu.sh</a> 2、bash ruisu.sh 这一步服务器因为要重启，需要等待几分钟。<br>二、安装锐速，要输入的命令如下 1、wget -N –no-check-certificate <a href="https://raw.githubusercontent.com/91yun/serverspeeder/master/serverspeeder-all.sh" target="_blank" rel="noopener">https://raw.githubusercontent.com/91yun/serverspeeder/master/serverspeeder-all.sh</a> 2、 bash serverspeeder-all.sh 最后，如果出现Running,即为安装成功。</p>
+<p>###第五步：<br>配置电脑端的Shadowsocks，在电脑上打开Shadowsocks，双击它的图标进入配置界面。在服务器IP栏填入你的服务器IP，密码栏填入你在第二步设置的密码，而不是服务器的密码。然后其它参数栏中填入你在第二步设置的相应参数，没标“*”的参数可以不填。最后，点击确定。</p>
+<p>###第六步：<br>至此，你的梯子已经搭建完成了。现在，用浏览器访问谷歌或Youtube，测试能否访问外网。如果不能，请仔细检查并确认你的全部步骤是否出错。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2019/07/07/%E4%BD%BF%E7%94%A8Shadowsocks%E6%90%AD%E5%BB%BA%E6%A2%AF%E5%AD%90%E7%9A%84%E6%95%99%E7%A8%8B/" data-id="ck38noqiv00024so02exx7639" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
+
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/11/21/DEBUG%E4%B9%8B%E6%8A%93%E5%8F%96%E8%93%9D%E7%89%99%E5%88%86%E6%9E%90log/">DEBUG之抓取蓝牙分析log</a>
+          </li>
+        
+          <li>
+            <a href="/2019/11/17/hello-world/">Hello World</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/07/%E7%BB%93%E6%9D%9F%E7%9A%84%E5%AD%A6%E7%94%9F%E6%97%B6%E4%BB%A3/">结束的学生时代</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/07/%E4%BD%BF%E7%94%A8Shadowsocks%E6%90%AD%E5%BB%BA%E6%A2%AF%E5%AD%90%E7%9A%84%E6%95%99%E7%A8%8B/">使用Shadowsocks搭建梯子的教程</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2019 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>

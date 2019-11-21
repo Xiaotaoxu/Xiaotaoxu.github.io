@@ -61,6 +61,54 @@
       <div class="outer">
         <section id="main">
   
+    <article id="post-DEBUG之动态log调试" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/11/21/DEBUG%E4%B9%8B%E5%8A%A8%E6%80%81log%E8%B0%83%E8%AF%95/" class="article-date">
+  <time datetime="2019-11-21T12:34:51.367Z" itemprop="datePublished">2019-11-21</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 itemprop="name">
+      <a class="article-title" href="/2019/11/21/DEBUG%E4%B9%8B%E5%8A%A8%E6%80%81log%E8%B0%83%E8%AF%95/">DEBUG之动态log调试</a>
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="DEBUG之动态log调试"><a href="#DEBUG之动态log调试" class="headerlink" title="DEBUG之动态log调试"></a>DEBUG之动态log调试</h1><h2 id="简介："><a href="#简介：" class="headerlink" title="简介："></a>简介：</h2><p>&emsp;&emsp;动态log调试指的是在kernel代码中pr_debug()等log调试函数的打开与关闭。在我现在的理解中，打开动态log调试就是让pr_debug()这个定义在内核中的log打印函数“起作用”。打开动态log调试之后，用dmesg命令查看内核log时，会看到相关模块内pr_debug()中要打印的内容出现在内核log中。而关闭动态log调试后，在内核log中不会看到pr_debug()中要打印的内容。在这里pr_debug()只是动态log调试控制的其中一个函数，但不只这一个函数，由于其它函数我没有接触过，就不列举<br>了。</p>
+<p>&emsp;&emsp;本文只介绍动态log打开关闭的基本方法，对其原理不胜了解，就不阐述了。</p>
+<h2 id="方法"><a href="#方法" class="headerlink" title="方法:"></a>方法:</h2><p>以高通的SDM660芯片为例：</p>
+<p>打开动态log调试：</p>
+<p>1.首先在android源码目录找到/kernel/msm-4.4/arch/arm64/configs/sdm660_defconfig文件，查看其中的CONFIG_DYNAMIC_DEBUG=y这句宏定义是否存在，存在表明动态调试配置好了，不存在就加上再重新编译一下代码。默认情况下是 已经配置好的。</p>
+<p>2.然后adb shell连接设备控制台。</p>
+<p>3.执行echo ‘8 6 1 7’ &gt; /proc/sys/kernel/printk，把printk语句都打开。</p>
+<p>4.执行echo -n “file 文件名 +p” &gt; /sys/kernel/debug/dynamic_debug/control，打开对应文件名里的pr_debug()语句，这一步就是打开动态log调试。</p>
+<p>5.再执行dmesg查看kernel内的输出log是否有你想要的log。</p>
+<p>关闭动态log调试：</p>
+<p>1.执行echo -n “file 文件名 -p” &gt; /sys/kernel/debug/dynamic_debug/control，就关闭了动态log调试。</p>
+<h2 id="结语："><a href="#结语：" class="headerlink" title="结语："></a>结语：</h2><p>&emsp;&emsp;动态log调试在我的工作中暂时还没什么机会用到，我也就用过一次。关于内核为什么要设计动态log调试这个模块，我有一点猜想。log打印毕竟是要消耗CPU的资源，增加进程的总运行时间的。log打印语句太多会造成CPU资源的浪费和进程运行卡顿，但有些时候又必需要添加很多log来调试程序怎么办？动态log调试就解决了这个问题，在需要的时候才打开很多log输出语句，不需要的时候就关闭它。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2019/11/21/DEBUG%E4%B9%8B%E5%8A%A8%E6%80%81log%E8%B0%83%E8%AF%95/" data-id="ck38p8mod0000mwo0h2qe6tqb" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+</article>
+
+
+  
     <article id="post-DEBUG之抓取蓝牙分析log" class="article article-type-post" itemscope itemprop="blogPost">
   <div class="article-meta">
     <a href="/2019/11/21/DEBUG%E4%B9%8B%E6%8A%93%E5%8F%96%E8%93%9D%E7%89%99%E5%88%86%E6%9E%90log/" class="article-date">
@@ -117,7 +165,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/11/21/DEBUG%E4%B9%8B%E6%8A%93%E5%8F%96%E8%93%9D%E7%89%99%E5%88%86%E6%9E%90log/" data-id="ck38noqie00004so0ezqr8pi3" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2019/11/21/DEBUG%E4%B9%8B%E6%8A%93%E5%8F%96%E8%93%9D%E7%89%99%E5%88%86%E6%9E%90log/" data-id="ck38p7mp7000108o0201p39ef" class="article-share-link">Share</a>
       
       
     </footer>
@@ -171,7 +219,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/11/17/hello-world/" data-id="ck38noqis00014so0exzx5028" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2019/11/17/hello-world/" data-id="ck38p7mou000008o0a9q30xll" class="article-share-link">Share</a>
       
       
     </footer>
@@ -208,7 +256,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/07/07/%E7%BB%93%E6%9D%9F%E7%9A%84%E5%AD%A6%E7%94%9F%E6%97%B6%E4%BB%A3/" data-id="ck38noqix00034so0ft9c7as3" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2019/07/07/%E7%BB%93%E6%9D%9F%E7%9A%84%E5%AD%A6%E7%94%9F%E6%97%B6%E4%BB%A3/" data-id="ck38p7mpe000308o07djqflt5" class="article-share-link">Share</a>
       
       
     </footer>
@@ -252,7 +300,7 @@
       
     </div>
     <footer class="article-footer">
-      <a data-url="http://yoursite.com/2019/07/07/%E4%BD%BF%E7%94%A8Shadowsocks%E6%90%AD%E5%BB%BA%E6%A2%AF%E5%AD%90%E7%9A%84%E6%95%99%E7%A8%8B/" data-id="ck38noqiv00024so02exx7639" class="article-share-link">Share</a>
+      <a data-url="http://yoursite.com/2019/07/07/%E4%BD%BF%E7%94%A8Shadowsocks%E6%90%AD%E5%BB%BA%E6%A2%AF%E5%AD%90%E7%9A%84%E6%95%99%E7%A8%8B/" data-id="ck38p7mpb000208o081cn39uj" class="article-share-link">Share</a>
       
       
     </footer>
@@ -291,6 +339,10 @@
     <h3 class="widget-title">Recent Posts</h3>
     <div class="widget">
       <ul>
+        
+          <li>
+            <a href="/2019/11/21/DEBUG%E4%B9%8B%E5%8A%A8%E6%80%81log%E8%B0%83%E8%AF%95/">DEBUG之动态log调试</a>
+          </li>
         
           <li>
             <a href="/2019/11/21/DEBUG%E4%B9%8B%E6%8A%93%E5%8F%96%E8%93%9D%E7%89%99%E5%88%86%E6%9E%90log/">DEBUG之抓取蓝牙分析log</a>

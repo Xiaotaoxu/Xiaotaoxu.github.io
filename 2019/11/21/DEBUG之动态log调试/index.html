@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+
+  
+  <title>DEBUG之动态log调试 | Hexo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="DEBUG之动态log调试简介：&amp;emsp;&amp;emsp;动态log调试指的是在kernel代码中pr_debug()等log调试函数的打开与关闭。在我现在的理解中，打开动态log调试就是让pr_debug()这个定义在内核中的log打印函数“起作用”。打开动态log调试之后，用dmesg命令查看内核log时，会看到相关模块内pr_debug()中要打印的内容出现在内核log中。而关闭动态log调试">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DEBUG之动态log调试">
+<meta property="og:url" content="http:&#x2F;&#x2F;yoursite.com&#x2F;2019&#x2F;11&#x2F;21&#x2F;DEBUG%E4%B9%8B%E5%8A%A8%E6%80%81log%E8%B0%83%E8%AF%95&#x2F;index.html">
+<meta property="og:site_name" content="Hexo">
+<meta property="og:description" content="DEBUG之动态log调试简介：&amp;emsp;&amp;emsp;动态log调试指的是在kernel代码中pr_debug()等log调试函数的打开与关闭。在我现在的理解中，打开动态log调试就是让pr_debug()这个定义在内核中的log打印函数“起作用”。打开动态log调试之后，用dmesg命令查看内核log时，会看到相关模块内pr_debug()中要打印的内容出现在内核log中。而关闭动态log调试">
+<meta property="og:locale" content="en">
+<meta property="og:updated_time" content="2019-11-21T12:35:40.713Z">
+<meta name="twitter:card" content="summary">
+  
+    <link rel="alternate" href="/atom.xml" title="Hexo" type="application/atom+xml">
+  
+  
+    <link rel="icon" href="/favicon.png">
+  
+  
+    <link href="//fonts.googleapis.com/css?family=Source+Code+Pro" rel="stylesheet" type="text/css">
+  
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+
+<body>
+  <div id="container">
+    <div id="wrap">
+      <header id="header">
+  <div id="banner"></div>
+  <div id="header-outer" class="outer">
+    <div id="header-title" class="inner">
+      <h1 id="logo-wrap">
+        <a href="/" id="logo">Hexo</a>
+      </h1>
+      
+    </div>
+    <div id="header-inner" class="inner">
+      <nav id="main-nav">
+        <a id="main-nav-toggle" class="nav-icon"></a>
+        
+          <a class="main-nav-link" href="/">Home</a>
+        
+          <a class="main-nav-link" href="/archives">Archives</a>
+        
+      </nav>
+      <nav id="sub-nav">
+        
+          <a id="nav-rss-link" class="nav-icon" href="/atom.xml" title="RSS Feed"></a>
+        
+        <a id="nav-search-btn" class="nav-icon" title="Search"></a>
+      </nav>
+      <div id="search-form-wrap">
+        <form action="//google.com/search" method="get" accept-charset="UTF-8" class="search-form"><input type="search" name="q" class="search-form-input" placeholder="Search"><button type="submit" class="search-form-submit">&#xF002;</button><input type="hidden" name="sitesearch" value="http://yoursite.com"></form>
+      </div>
+    </div>
+  </div>
+</header>
+      <div class="outer">
+        <section id="main"><article id="post-DEBUG之动态log调试" class="article article-type-post" itemscope itemprop="blogPost">
+  <div class="article-meta">
+    <a href="/2019/11/21/DEBUG%E4%B9%8B%E5%8A%A8%E6%80%81log%E8%B0%83%E8%AF%95/" class="article-date">
+  <time datetime="2019-11-21T12:34:51.367Z" itemprop="datePublished">2019-11-21</time>
+</a>
+    
+  </div>
+  <div class="article-inner">
+    
+    
+      <header class="article-header">
+        
+  
+    <h1 class="article-title" itemprop="name">
+      DEBUG之动态log调试
+    </h1>
+  
+
+      </header>
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+        <h1 id="DEBUG之动态log调试"><a href="#DEBUG之动态log调试" class="headerlink" title="DEBUG之动态log调试"></a>DEBUG之动态log调试</h1><h2 id="简介："><a href="#简介：" class="headerlink" title="简介："></a>简介：</h2><p>&emsp;&emsp;动态log调试指的是在kernel代码中pr_debug()等log调试函数的打开与关闭。在我现在的理解中，打开动态log调试就是让pr_debug()这个定义在内核中的log打印函数“起作用”。打开动态log调试之后，用dmesg命令查看内核log时，会看到相关模块内pr_debug()中要打印的内容出现在内核log中。而关闭动态log调试后，在内核log中不会看到pr_debug()中要打印的内容。在这里pr_debug()只是动态log调试控制的其中一个函数，但不只这一个函数，由于其它函数我没有接触过，就不列举<br>了。</p>
+<p>&emsp;&emsp;本文只介绍动态log打开关闭的基本方法，对其原理不胜了解，就不阐述了。</p>
+<h2 id="方法"><a href="#方法" class="headerlink" title="方法:"></a>方法:</h2><p>以高通的SDM660芯片为例：</p>
+<p>打开动态log调试：</p>
+<p>1.首先在android源码目录找到/kernel/msm-4.4/arch/arm64/configs/sdm660_defconfig文件，查看其中的CONFIG_DYNAMIC_DEBUG=y这句宏定义是否存在，存在表明动态调试配置好了，不存在就加上再重新编译一下代码。默认情况下是 已经配置好的。</p>
+<p>2.然后adb shell连接设备控制台。</p>
+<p>3.执行echo ‘8 6 1 7’ &gt; /proc/sys/kernel/printk，把printk语句都打开。</p>
+<p>4.执行echo -n “file 文件名 +p” &gt; /sys/kernel/debug/dynamic_debug/control，打开对应文件名里的pr_debug()语句，这一步就是打开动态log调试。</p>
+<p>5.再执行dmesg查看kernel内的输出log是否有你想要的log。</p>
+<p>关闭动态log调试：</p>
+<p>1.执行echo -n “file 文件名 -p” &gt; /sys/kernel/debug/dynamic_debug/control，就关闭了动态log调试。</p>
+<h2 id="结语："><a href="#结语：" class="headerlink" title="结语："></a>结语：</h2><p>&emsp;&emsp;动态log调试在我的工作中暂时还没什么机会用到，我也就用过一次。关于内核为什么要设计动态log调试这个模块，我有一点猜想。log打印毕竟是要消耗CPU的资源，增加进程的总运行时间的。log打印语句太多会造成CPU资源的浪费和进程运行卡顿，但有些时候又必需要添加很多log来调试程序怎么办？动态log调试就解决了这个问题，在需要的时候才打开很多log输出语句，不需要的时候就关闭它。</p>
+
+      
+    </div>
+    <footer class="article-footer">
+      <a data-url="http://yoursite.com/2019/11/21/DEBUG%E4%B9%8B%E5%8A%A8%E6%80%81log%E8%B0%83%E8%AF%95/" data-id="ck38p8mod0000mwo0h2qe6tqb" class="article-share-link">Share</a>
+      
+      
+    </footer>
+  </div>
+  
+    
+<nav id="article-nav">
+  
+  
+    <a href="/2019/11/21/DEBUG%E4%B9%8B%E6%8A%93%E5%8F%96%E8%93%9D%E7%89%99%E5%88%86%E6%9E%90log/" id="article-nav-older" class="article-nav-link-wrap">
+      <strong class="article-nav-caption">Older</strong>
+      <div class="article-nav-title">DEBUG之抓取蓝牙分析log</div>
+    </a>
+  
+</nav>
+
+  
+</article>
+
+</section>
+        
+          <aside id="sidebar">
+  
+    
+
+  
+    
+
+  
+    
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Archives</h3>
+    <div class="widget">
+      <ul class="archive-list"><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/11/">November 2019</a></li><li class="archive-list-item"><a class="archive-list-link" href="/archives/2019/07/">July 2019</a></li></ul>
+    </div>
+  </div>
+
+
+  
+    
+  <div class="widget-wrap">
+    <h3 class="widget-title">Recent Posts</h3>
+    <div class="widget">
+      <ul>
+        
+          <li>
+            <a href="/2019/11/21/DEBUG%E4%B9%8B%E5%8A%A8%E6%80%81log%E8%B0%83%E8%AF%95/">DEBUG之动态log调试</a>
+          </li>
+        
+          <li>
+            <a href="/2019/11/21/DEBUG%E4%B9%8B%E6%8A%93%E5%8F%96%E8%93%9D%E7%89%99%E5%88%86%E6%9E%90log/">DEBUG之抓取蓝牙分析log</a>
+          </li>
+        
+          <li>
+            <a href="/2019/11/17/hello-world/">Hello World</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/07/%E7%BB%93%E6%9D%9F%E7%9A%84%E5%AD%A6%E7%94%9F%E6%97%B6%E4%BB%A3/">结束的学生时代</a>
+          </li>
+        
+          <li>
+            <a href="/2019/07/07/%E4%BD%BF%E7%94%A8Shadowsocks%E6%90%AD%E5%BB%BA%E6%A2%AF%E5%AD%90%E7%9A%84%E6%95%99%E7%A8%8B/">使用Shadowsocks搭建梯子的教程</a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+
+  
+</aside>
+        
+      </div>
+      <footer id="footer">
+  
+  <div class="outer">
+    <div id="footer-info" class="inner">
+      &copy; 2019 John Doe<br>
+      Powered by <a href="http://hexo.io/" target="_blank">Hexo</a>
+    </div>
+  </div>
+</footer>
+    </div>
+    <nav id="mobile-nav">
+  
+    <a href="/" class="mobile-nav-link">Home</a>
+  
+    <a href="/archives" class="mobile-nav-link">Archives</a>
+  
+</nav>
+    
+
+<script src="//ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+
+
+  <link rel="stylesheet" href="/fancybox/jquery.fancybox.css">
+  <script src="/fancybox/jquery.fancybox.pack.js"></script>
+
+
+<script src="/js/script.js"></script>
+
+
+
+  </div>
+</body>
+</html>
